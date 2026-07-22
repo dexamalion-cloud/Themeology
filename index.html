@@ -86,15 +86,13 @@
   }
 
   .cell{
-    width: 36px;
-    height: 36px;
     border-radius: 8px;
     display:flex;
     align-items:center;
     justify-content:center;
     font-family:'JetBrains Mono', monospace;
     font-weight: 700;
-    font-size: 15px;
+    font-size: calc(var(--cell-size, 36px) * 0.42);
     user-select: none;
     transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
   }
@@ -315,6 +313,16 @@
     font-size: 12px;
   }
 
+  .key.action{
+    background: var(--reveal-dim);
+    color: var(--reveal);
+    font-size: 17px;
+  }
+
+  .key.action:active{
+    background: rgba(185, 140, 242, 0.28);
+  }
+
   /* ---------- Win state ---------- */
   #win-banner{
     position: fixed;
@@ -457,8 +465,30 @@ const wordCellOrder = WORDS.map((w, wi) => {
 
 /* ---------------- Render grid ---------------- */
 const gridEl = document.getElementById('grid');
-gridEl.style.gridTemplateColumns = `repeat(${totalCols}, 36px)`;
-gridEl.style.gridTemplateRows = `repeat(${totalRows}, 36px)`;
+const gridWrapEl = document.getElementById('grid-wrap');
+const GRID_GAP = 3;
+const MIN_CELL = 22;
+const MAX_CELL = 42;
+
+function sizeGrid(){
+  const availW = gridWrapEl.clientWidth;
+  const availH = gridWrapEl.clientHeight;
+
+  const fromWidth = (availW - (totalCols - 1) * GRID_GAP) / totalCols;
+  const fromHeight = (availH - (totalRows - 1) * GRID_GAP) / totalRows;
+
+  let cellSize = Math.floor(Math.min(fromWidth, fromHeight));
+  cellSize = Math.max(MIN_CELL, Math.min(MAX_CELL, cellSize));
+
+  gridEl.style.setProperty('--cell-size', `${cellSize}px`);
+  gridEl.style.gridTemplateColumns = `repeat(${totalCols}, ${cellSize}px)`;
+  gridEl.style.gridTemplateRows = `repeat(${totalRows}, ${cellSize}px)`;
+}
+
+sizeGrid();
+window.addEventListener('resize', sizeGrid);
+window.addEventListener('orientationchange', sizeGrid);
+window.addEventListener('load', sizeGrid);
 
 const domCells = []; // domCells[row][col]
 for(let r=0; r<totalRows; r++){
@@ -499,13 +529,6 @@ const kbEl = document.getElementById('keyboard');
 KB_ROWS.forEach((row, i) => {
   const rowEl = document.createElement('div');
   rowEl.className = 'kb-row';
-  if(i === 2){
-    const del = document.createElement('button');
-    del.className = 'key wide';
-    del.textContent = '⌫';
-    del.addEventListener('click', () => onBackspace());
-    rowEl.appendChild(del);
-  }
   [...row].forEach(letter => {
     const key = document.createElement('button');
     key.className = 'key';
@@ -513,6 +536,14 @@ KB_ROWS.forEach((row, i) => {
     key.addEventListener('click', () => onLetter(letter));
     rowEl.appendChild(key);
   });
+  if(i === 2){
+    const del = document.createElement('button');
+    del.className = 'key wide action';
+    del.setAttribute('aria-label', 'Erase letter');
+    del.textContent = '⌫';
+    del.addEventListener('click', () => onBackspace());
+    rowEl.appendChild(del);
+  }
   kbEl.appendChild(rowEl);
 });
 
