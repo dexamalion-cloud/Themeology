@@ -50,28 +50,23 @@
 
   /* ---------- Header ---------- */
   header{
-    padding: 18px 20px 10px;
+    padding: 8px 20px 4px;
     flex-shrink:0;
   }
   .eyebrow{
     font-family:'JetBrains Mono', monospace;
-    font-size: 11px;
+    font-size: 10px;
     letter-spacing: 0.14em;
     color: var(--accent);
     text-transform: uppercase;
-    margin: 0 0 4px;
+    margin: 0 0 2px;
   }
   h1{
     font-family:'Space Grotesk', sans-serif;
-    font-size: 22px;
+    font-size: 18px;
     font-weight: 700;
     margin: 0;
     letter-spacing: -0.01em;
-  }
-  .subtitle{
-    font-size: 13px;
-    color: var(--ink-dim);
-    margin: 4px 0 0;
   }
 
   /* ---------- Puzzle grid area ---------- */
@@ -81,25 +76,25 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    padding: 8px 12px;
+    padding: 4px 8px;
     overflow: auto;
   }
 
   #grid{
     display: grid;
-    gap: 4px;
+    gap: 3px;
   }
 
   .cell{
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
     border-radius: 8px;
     display:flex;
     align-items:center;
     justify-content:center;
     font-family:'JetBrains Mono', monospace;
     font-weight: 700;
-    font-size: 16px;
+    font-size: 15px;
     user-select: none;
     transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
   }
@@ -185,15 +180,15 @@
   /* ---------- Hint bar ---------- */
   #hint-bar{
     flex-shrink:0;
-    margin: 4px 16px 0;
-    padding: 14px 18px;
+    margin: 0 16px 0;
+    padding: 8px 14px;
     background: linear-gradient(135deg, rgba(242,184,75,0.14), rgba(242,184,75,0.05));
     border: 1px solid rgba(242, 184, 75, 0.35);
     border-radius: var(--radius);
-    min-height: 20px;
+    min-height: 16px;
     display:flex;
     align-items:center;
-    gap: 12px;
+    gap: 10px;
     transition: border-color 0.2s ease, background 0.2s ease;
   }
 
@@ -246,7 +241,7 @@
   /* ---------- Hint action button ---------- */
   #hint-action{
     flex-shrink:0;
-    padding: 10px 16px;
+    padding: 5px 16px;
     background: var(--bg-elevated);
     border-top: 1px solid #262b3b;
     display: flex;
@@ -255,7 +250,7 @@
 
   #hint-btn{
     width: auto;
-    padding: 8px 22px;
+    padding: 6px 20px;
     border-radius: 999px;
     border: 1px solid rgba(242, 184, 75, 0.35);
     background: rgba(242, 184, 75, 0.08);
@@ -280,7 +275,7 @@
   /* ---------- Keyboard ---------- */
   #keyboard{
     flex-shrink:0;
-    padding: 10px 6px calc(10px + env(safe-area-inset-bottom));
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
     background: var(--bg-elevated);
   }
 
@@ -288,14 +283,14 @@
     display:flex;
     justify-content:center;
     gap: 3px;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
   }
   .kb-row:last-child{ margin-bottom: 0; }
 
   .key{
     flex: 1;
     max-width: 32px;
-    height: 44px;
+    height: 40px;
     border-radius: 7px;
     background: var(--key-bg);
     color: var(--ink);
@@ -363,7 +358,6 @@
   <header>
     <p class="eyebrow">Today's word</p>
     <h1>AMBULANCE</h1>
-    <p class="subtitle">Fill in the words branching off the middle.</p>
   </header>
 
   <div id="hint-bar">
@@ -463,8 +457,8 @@ const wordCellOrder = WORDS.map((w, wi) => {
 
 /* ---------------- Render grid ---------------- */
 const gridEl = document.getElementById('grid');
-gridEl.style.gridTemplateColumns = `repeat(${totalCols}, 38px)`;
-gridEl.style.gridTemplateRows = `repeat(${totalRows}, 38px)`;
+gridEl.style.gridTemplateColumns = `repeat(${totalCols}, 36px)`;
+gridEl.style.gridTemplateRows = `repeat(${totalRows}, 36px)`;
 
 const domCells = []; // domCells[row][col]
 for(let r=0; r<totalRows; r++){
