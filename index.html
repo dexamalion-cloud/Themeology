@@ -87,19 +87,19 @@
 
   #grid{
     display: grid;
-    gap: 6px;
+    gap: 4px;
   }
 
   .cell{
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
     border-radius: 8px;
     display:flex;
     align-items:center;
     justify-content:center;
     font-family:'JetBrains Mono', monospace;
     font-weight: 700;
-    font-size: 18px;
+    font-size: 16px;
     user-select: none;
     transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
   }
@@ -287,15 +287,15 @@
   .kb-row{
     display:flex;
     justify-content:center;
-    gap: 5px;
-    margin-bottom: 7px;
+    gap: 3px;
+    margin-bottom: 5px;
   }
   .kb-row:last-child{ margin-bottom: 0; }
 
   .key{
     flex: 1;
-    max-width: 34px;
-    height: 46px;
+    max-width: 32px;
+    height: 44px;
     border-radius: 7px;
     background: var(--key-bg);
     color: var(--ink);
@@ -463,8 +463,8 @@ const wordCellOrder = WORDS.map((w, wi) => {
 
 /* ---------------- Render grid ---------------- */
 const gridEl = document.getElementById('grid');
-gridEl.style.gridTemplateColumns = `repeat(${totalCols}, 40px)`;
-gridEl.style.gridTemplateRows = `repeat(${totalRows}, 40px)`;
+gridEl.style.gridTemplateColumns = `repeat(${totalCols}, 38px)`;
+gridEl.style.gridTemplateRows = `repeat(${totalRows}, 38px)`;
 
 const domCells = []; // domCells[row][col]
 for(let r=0; r<totalRows; r++){
