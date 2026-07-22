@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Themeology — Daily Puzzle Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #12141c;
+    --bg-elevated: #181b26;
+    --panel: #1e2230;
+    --cell-empty: #1e2230;
+    --cell-border: #343a4d;
+    --cell-base: #262b3b;
+    --cell-base-border: #454d66;
+    --ink: #eceff4;
+    --ink-dim: #8c93a8;
+    --accent: #f2b84b;
+    --accent-ink: #14161d;
+    --reveal: #b98cf2;
+    --reveal-dim: #2c2440;
+    --success: #3ed68c;
+    --success-dim: #1d3a30;
+    --error: #e5484d;
+    --key-bg: #262b3b;
+    --key-bg-hover: #313749;
+    --radius: 10px;
+  }
+
+  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    overscroll-behavior: none;
+  }
+
+  #app{
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+    max-width: 480px;
+    margin: 0 auto;
+    background: var(--bg);
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    padding: 18px 20px 10px;
+    flex-shrink:0;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin: 0 0 4px;
+  }
+  h1{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .subtitle{
+    font-size: 13px;
+    color: var(--ink-dim);
+    margin: 4px 0 0;
+  }
+
+  /* ---------- Puzzle grid area ---------- */
+  #grid-wrap{
+    flex: 1 1 auto;
+    min-height: 0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 8px 12px;
+    overflow: auto;
+  }
+
+  #grid{
+    display: grid;
+    gap: 6px;
+  }
+
+  .cell{
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 18px;
+    user-select: none;
+    transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+  }
+
+  .cell.blank{
+    visibility: hidden;
+  }
+
+  .cell.base{
+    background: var(--cell-base);
+    border: 2px solid var(--cell-base-border);
+    color: var(--ink);
+  }
+
+  .cell.input{
+    background: var(--cell-empty);
+    border: 2px solid var(--cell-border);
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .cell.input.filled{
+    color: var(--ink);
+  }
+
+  .cell.active-word{
+    border-color: rgba(242, 184, 75, 0.55);
+    transform: scale(1.1);
+    z-index: 5;
+  }
+
+  .cell.input.active-cell{
+    border-color: var(--accent);
+    background: rgba(242, 184, 75, 0.14);
+  }
+
+  .cell.push-left{
+    transform: translateX(-10px);
+  }
+
+  .cell.push-right{
+    transform: translateX(10px);
+  }
+
+  .cell.active-word.push-left{
+    transform: translateX(-10px) scale(1.1);
+  }
+
+  .cell.active-word.push-right{
+    transform: translateX(10px) scale(1.1);
+  }
+
+  .cell.input.solved{
+    background: var(--success-dim);
+    border-color: var(--success);
+    color: var(--success);
+  }
+
+  .cell.input.revealed{
+    background: var(--reveal-dim);
+    border-color: var(--reveal);
+    color: var(--reveal);
+  }
+
+  .cell.input.revealed.solved{
+    background: var(--success-dim);
+    border-color: var(--reveal);
+    color: var(--reveal);
+  }
+
+  .cell.input.shake{
+    animation: shake 0.32s ease;
+    border-color: var(--error);
+    background: rgba(229, 72, 77, 0.14);
+  }
+
+  @keyframes shake{
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+
+  /* ---------- Hint bar ---------- */
+  #hint-bar{
+    flex-shrink:0;
+    margin: 4px 16px 0;
+    padding: 14px 18px;
+    background: linear-gradient(135deg, rgba(242,184,75,0.14), rgba(242,184,75,0.05));
+    border: 1px solid rgba(242, 184, 75, 0.35);
+    border-radius: var(--radius);
+    min-height: 20px;
+    display:flex;
+    align-items:center;
+    gap: 12px;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+
+  #hint-bar.idle-state{
+    background: var(--panel);
+    border-color: transparent;
+  }
+
+  #hint-bar.solved-state{
+    background: linear-gradient(135deg, rgba(62,214,140,0.14), rgba(62,214,140,0.05));
+    border-color: rgba(62, 214, 140, 0.4);
+  }
+
+  #hint-icon{
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-family:'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+    transition: background 0.15s ease;
+  }
+
+  #hint-icon.idle{
+    background: var(--ink-dim);
+  }
+
+  #hint-icon.solved-icon{
+    background: var(--success);
+  }
+
+  #hint-text{
+    font-size: 15px;
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  #hint-text .hint-label{
+    color: var(--ink-dim);
+    font-weight: 400;
+    margin-right: 4px;
+  }
+
+  /* ---------- Hint action button ---------- */
+  #hint-action{
+    flex-shrink:0;
+    padding: 10px 16px;
+    background: var(--bg-elevated);
+    border-top: 1px solid #262b3b;
+    display: flex;
+    justify-content: center;
+  }
+
+  #hint-btn{
+    width: auto;
+    padding: 8px 22px;
+    border-radius: 999px;
+    border: 1px solid rgba(242, 184, 75, 0.35);
+    background: rgba(242, 184, 75, 0.08);
+    color: var(--accent);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: background 0.12s ease, opacity 0.12s ease;
+  }
+
+  #hint-btn:active{
+    background: rgba(242, 184, 75, 0.18);
+  }
+
+  #hint-btn:disabled{
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  /* ---------- Keyboard ---------- */
+  #keyboard{
+    flex-shrink:0;
+    padding: 10px 6px calc(10px + env(safe-area-inset-bottom));
+    background: var(--bg-elevated);
+  }
+
+  .kb-row{
+    display:flex;
+    justify-content:center;
+    gap: 5px;
+    margin-bottom: 7px;
+  }
+  .kb-row:last-child{ margin-bottom: 0; }
+
+  .key{
+    flex: 1;
+    max-width: 34px;
+    height: 46px;
+    border-radius: 7px;
+    background: var(--key-bg);
+    color: var(--ink);
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor: pointer;
+    transition: background 0.1s ease, transform 0.05s ease;
+  }
+
+  .key:active{
+    background: var(--key-bg-hover);
+    transform: scale(0.94);
+  }
+
+  .key.wide{
+    max-width: 56px;
+    font-size: 12px;
+  }
+
+  /* ---------- Win state ---------- */
+  #win-banner{
+    position: fixed;
+    inset: 0;
+    background: rgba(18,20,28,0.88);
+    display: none;
+    align-items:center;
+    justify-content:center;
+    flex-direction: column;
+    text-align:center;
+    z-index: 50;
+    backdrop-filter: blur(2px);
+  }
+  #win-banner.show{ display:flex; }
+  #win-banner .win-title{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  #win-banner .win-sub{
+    color: var(--ink-dim);
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+  #win-banner button{
+    background: var(--accent);
+    color: var(--accent-ink);
+    border:none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-family: 'Space Grotesk', sans-serif;
+    cursor:pointer;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <p class="eyebrow">Today's word</p>
+    <h1>AMBULANCE</h1>
+    <p class="subtitle">Fill in the words branching off the middle.</p>
+  </header>
+
+  <div id="hint-bar">
+    <div id="hint-icon" class="idle">?</div>
+    <div id="hint-text"><span class="hint-label">Hint</span>Tap a highlighted box to begin</div>
+  </div>
+
+  <div id="grid-wrap">
+    <div id="grid"></div>
+  </div>
+
+  <div id="hint-action">
+    <button id="hint-btn" onclick="revealHint()">Reveal letter</button>
+  </div>
+
+  <div id="keyboard"></div>
+</div>
+
+<div id="win-banner">
+  <div class="win-title">Solved!</div>
+  <div class="win-sub">All 4 words complete.</div>
+  <button onclick="resetPuzzle()">Play again</button>
+</div>
+
+<script>
+/* ---------------- Puzzle data ---------------- */
+const BASE = "AMBULANCE";
+const WORDS = [
+  { col: 0, answer: "TRAUMA",    hint: "Injury",                    sharedIndex: 2 },
+  { col: 1, answer: "PARAMEDIC", hint: "Ambulance operator",        sharedIndex: 4 },
+  { col: 2, answer: "STROBE",    hint: "What lights do",             sharedIndex: 4 },
+  { col: 3, answer: "RUSH",      hint: "Hurry!",                     sharedIndex: 1 },
+  { col: 4, answer: "WAIL",      hint: "Sound of the siren",         sharedIndex: 3 },
+  { col: 5, answer: "TRIAGE",    hint: "Who's first?",               sharedIndex: 3 },
+  { col: 6, answer: "INTUBATE",  hint: "Help them breathe!",         sharedIndex: 1 },
+  { col: 7, answer: "CPR",       hint: "Life-saving technique",      sharedIndex: 0 },
+  { col: 8, answer: "TIME",      hint: "A race against ____!",       sharedIndex: 3 },
+];
+
+/* ---------------- Derived layout ---------------- */
+const maxAbove = Math.max(...WORDS.map(w => w.sharedIndex));
+const maxBelow = Math.max(...WORDS.map(w => w.answer.length - w.sharedIndex - 1));
+const baseRow = maxAbove;
+const totalRows = maxAbove + 1 + maxBelow;
+const totalCols = BASE.length;
+
+// Build a lookup: colWordMap[col] = word config (if any)
+const colWordMap = {};
+WORDS.forEach(w => colWordMap[w.col] = w);
+
+// cell registry: cells[row][col] = {type: 'base'|'input'|'blank', letter, wordId, cellIndexInWord}
+const cells = [];
+for(let r=0; r<totalRows; r++){
+  cells.push(new Array(totalCols).fill(null));
+}
+
+WORDS.forEach((w, wi) => {
+  const aboveLen = w.sharedIndex;
+  const belowLen = w.answer.length - w.sharedIndex - 1;
+  const topStart = maxAbove - aboveLen;
+  // above cells
+  for(let i=0; i<aboveLen; i++){
+    const row = topStart + i;
+    cells[row][w.col] = { type:'input', letter: w.answer[i], wordId: wi, filled:false };
+  }
+  // below cells
+  for(let i=0; i<belowLen; i++){
+    const row = baseRow + 1 + i;
+    const letterIdx = w.sharedIndex + 1 + i;
+    cells[row][w.col] = { type:'input', letter: w.answer[letterIdx], wordId: wi, filled:false };
+  }
+});
+
+// base row
+for(let c=0; c<totalCols; c++){
+  if(!cells[baseRow][c]){
+    cells[baseRow][c] = { type:'base', letter: BASE[c] };
+  }
+}
+// fill remaining nulls as blanks
+for(let r=0; r<totalRows; r++){
+  for(let c=0; c<totalCols; c++){
+    if(!cells[r][c]) cells[r][c] = { type:'blank' };
+  }
+}
+
+// Build ordered cell-position list per word (top-to-bottom reading order), for auto-advance
+const wordCellOrder = WORDS.map((w, wi) => {
+  const positions = [];
+  for(let r=0; r<totalRows; r++){
+    if(cells[r][w.col] && cells[r][w.col].type==='input' && cells[r][w.col].wordId===wi){
+      positions.push({row:r, col:w.col});
+    }
+  }
+  return positions;
+});
+
+/* ---------------- Render grid ---------------- */
+const gridEl = document.getElementById('grid');
+gridEl.style.gridTemplateColumns = `repeat(${totalCols}, 40px)`;
+gridEl.style.gridTemplateRows = `repeat(${totalRows}, 40px)`;
+
+const domCells = []; // domCells[row][col]
+for(let r=0; r<totalRows; r++){
+  domCells.push(new Array(totalCols).fill(null));
+}
+
+for(let r=0; r<totalRows; r++){
+  for(let c=0; c<totalCols; c++){
+    const meta = cells[r][c];
+    const div = document.createElement('div');
+    div.style.gridRow = r+1;
+    div.style.gridColumn = c+1;
+
+    if(meta.type === 'blank'){
+      div.className = 'cell blank';
+    } else if(meta.type === 'base'){
+      div.className = 'cell base';
+      div.textContent = meta.letter;
+    } else {
+      div.className = 'cell input';
+      div.dataset.row = r;
+      div.dataset.col = c;
+      div.dataset.wordId = meta.wordId;
+      div.addEventListener('click', () => onCellClick(r, c));
+    }
+    gridEl.appendChild(div);
+    domCells[r][c] = div;
+  }
+}
+
+/* ---------------- Keyboard ---------------- */
+const KB_ROWS = [
+  "QWERTYUIOP",
+  "ASDFGHJKL",
+  "ZXCVBNM"
+];
+const kbEl = document.getElementById('keyboard');
+KB_ROWS.forEach((row, i) => {
+  const rowEl = document.createElement('div');
+  rowEl.className = 'kb-row';
+  if(i === 2){
+    const del = document.createElement('button');
+    del.className = 'key wide';
+    del.textContent = '⌫';
+    del.addEventListener('click', () => onBackspace());
+    rowEl.appendChild(del);
+  }
+  [...row].forEach(letter => {
+    const key = document.createElement('button');
+    key.className = 'key';
+    key.textContent = letter;
+    key.addEventListener('click', () => onLetter(letter));
+    rowEl.appendChild(key);
+  });
+  kbEl.appendChild(rowEl);
+});
+
+/* ---------------- Game state ---------------- */
+let activeWordId = null;
+let activeCellPos = null; // {row, col}
+const solvedWords = new Set();
+
+const hintTextEl = document.getElementById('hint-text');
+const hintIconEl = document.getElementById('hint-icon');
+
+function firstUnsolvedWordId(){
+  for(let i=0;i<WORDS.length;i++){
+    if(!solvedWords.has(i)) return i;
+  }
+  return null;
+}
+
+function firstEmptyCellInWord(wi){
+  const positions = wordCellOrder[wi];
+  for(const p of positions){
+    if(!cells[p.row][p.col].filled) return p;
+  }
+  return positions[0];
+}
+
+function selectWord(wi, preferredCell){
+  activeWordId = wi;
+  activeCellPos = preferredCell || firstEmptyCellInWord(wi);
+  renderHighlights();
+  renderHint();
+  updateHintButton();
+}
+
+const hintBarEl = document.getElementById('hint-bar');
+const hintBtnEl = document.getElementById('hint-btn');
+
+function updateHintButton(){
+  const disabled = activeWordId === null || !activeCellPos || solvedWords.has(activeWordId);
+  hintBtnEl.disabled = disabled;
+}
+
+function revealHint(){
+  if(activeWordId === null || !activeCellPos) return;
+  if(solvedWords.has(activeWordId)) return;
+  const meta = cells[activeCellPos.row][activeCellPos.col];
+  onLetter(meta.letter, true);
+}
+
+function renderHint(){
+  updateHintButton();
+  if(activeWordId === null){
+    hintIconEl.className = 'idle';
+    hintIconEl.textContent = '?';
+    const allSolved = solvedWords.size === WORDS.length;
+    hintTextEl.innerHTML = allSolved
+      ? '<span class="hint-label">Nice work —</span>puzzle complete'
+      : '<span class="hint-label">Hint</span>Tap a highlighted box to begin';
+    hintBarEl.className = allSolved ? 'solved-state' : 'idle-state';
+    return;
+  }
+  const w = WORDS[activeWordId];
+  const isSolved = solvedWords.has(activeWordId);
+  hintIconEl.className = isSolved ? 'solved-icon' : '';
+  hintIconEl.textContent = isSolved ? '✓' : '?';
+  hintTextEl.innerHTML = `<span class="hint-label">Hint</span>${w.hint}`;
+  hintBarEl.className = isSolved ? 'solved-state' : '';
+}
+
+function renderHighlights(){
+  const activeCol = activeWordId !== null ? WORDS[activeWordId].col : null;
+
+  for(let r=0;r<totalRows;r++){
+    for(let c=0;c<totalCols;c++){
+      const meta = cells[r][c];
+      if(meta.type === 'blank') continue;
+      const el = domCells[r][c];
+      el.classList.remove('active-word','active-cell','push-left','push-right');
+
+      if(meta.type === 'input'){
+        const isActiveWord = meta.wordId === activeWordId;
+        if(isActiveWord) el.classList.add('active-word');
+        if(activeCellPos && activeCellPos.row===r && activeCellPos.col===c) el.classList.add('active-cell');
+      } else if(meta.type === 'base' && c === activeCol){
+        el.classList.add('active-word');
+      }
+
+      if(activeCol !== null){
+        if(c < activeCol) el.classList.add('push-left');
+        if(c > activeCol) el.classList.add('push-right');
+      }
+    }
+  }
+}
+
+function onCellClick(r, c){
+  const meta = cells[r][c];
+  if(solvedWords.has(meta.wordId)) return; // locked
+  selectWord(meta.wordId, {row:r, col:c});
+}
+
+function onLetter(letter, isRevealed=false){
+  if(activeWordId === null || !activeCellPos) return;
+  if(solvedWords.has(activeWordId)) return;
+
+  const {row, col} = activeCellPos;
+  const meta = cells[row][col];
+  meta.filled = true;
+  meta.userLetter = letter;
+  meta.revealed = isRevealed;
+  const el = domCells[row][col];
+  el.textContent = letter;
+  el.classList.add('filled');
+  el.classList.toggle('revealed', isRevealed);
+
+  // advance to next empty cell in word (row order)
+  const positions = wordCellOrder[activeWordId];
+  const next = positions.find(p => !cells[p.row][p.col].filled);
+
+  if(next){
+    activeCellPos = next;
+    renderHighlights();
+  } else {
+    // word fully filled -> validate
+    validateWord(activeWordId);
+  }
+}
+
+function onBackspace(){
+  if(activeWordId === null || !activeCellPos) return;
+  if(solvedWords.has(activeWordId)) return;
+
+  const positions = wordCellOrder[activeWordId];
+  let {row, col} = activeCellPos;
+  let meta = cells[row][col];
+
+  if(meta.filled){
+    meta.filled = false;
+    meta.userLetter = null;
+    meta.revealed = false;
+    domCells[row][col].textContent = '';
+    domCells[row][col].classList.remove('filled','revealed');
+  } else {
+    // move to previous filled cell
+    const idx = positions.findIndex(p => p.row===row && p.col===col);
+    for(let i=idx-1; i>=0; i--){
+      const p = positions[i];
+      if(cells[p.row][p.col].filled){
+        cells[p.row][p.col].filled = false;
+        cells[p.row][p.col].userLetter = null;
+        cells[p.row][p.col].revealed = false;
+        domCells[p.row][p.col].textContent = '';
+        domCells[p.row][p.col].classList.remove('filled','revealed');
+        activeCellPos = p;
+        renderHighlights();
+        return;
+      }
+    }
+  }
+  renderHighlights();
+}
+
+function validateWord(wi){
+  const w = WORDS[wi];
+  const positions = wordCellOrder[wi];
+  const userWord = positions.map(p => cells[p.row][p.col].userLetter).join('');
+
+  // reconstruct in reading order vs answer (positions already top-to-bottom which is the same as answer order minus shared letter)
+  const correct = userWord === wordAnswerWithoutShared(w);
+
+  if(correct){
+    solvedWords.add(wi);
+    positions.forEach(p => domCells[p.row][p.col].classList.add('solved'));
+
+    if(solvedWords.size === WORDS.length){
+      // puzzle complete: collapse back to compact spacing
+      setTimeout(() => {
+        activeWordId = null;
+        activeCellPos = null;
+        renderHighlights();
+        renderHint();
+      }, 260);
+      checkWin();
+    } else {
+      renderHint();
+      setTimeout(() => {
+        const nextId = firstUnsolvedWordId();
+        if(nextId !== null) selectWord(nextId);
+      }, 260);
+    }
+  } else {
+    // shake + clear
+    positions.forEach(p => {
+      const el = domCells[p.row][p.col];
+      el.classList.add('shake');
+      setTimeout(() => el.classList.remove('shake'), 320);
+    });
+    setTimeout(() => {
+      positions.forEach(p => {
+        cells[p.row][p.col].filled = false;
+        cells[p.row][p.col].userLetter = null;
+        cells[p.row][p.col].revealed = false;
+        domCells[p.row][p.col].textContent = '';
+        domCells[p.row][p.col].classList.remove('filled','revealed');
+      });
+      activeCellPos = positions[0];
+      renderHighlights();
+    }, 340);
+  }
+}
+
+function wordAnswerWithoutShared(w){
+  return w.answer.slice(0, w.sharedIndex) + w.answer.slice(w.sharedIndex+1);
+}
+
+function checkWin(){
+  if(solvedWords.size === WORDS.length){
+    setTimeout(() => {
+      document.getElementById('win-banner').classList.add('show');
+    }, 400);
+  }
+}
+
+function resetPuzzle(){
+  location.reload();
+}
+
+/* physical keyboard support for desktop testing */
+window.addEventListener('keydown', (e) => {
+  if(/^[a-zA-Z]$/.test(e.key)) onLetter(e.key.toUpperCase());
+  else if(e.key === 'Backspace') onBackspace();
+});
+
+/* start compact: nothing selected until the player taps their first box */
+renderHighlights();
+renderHint();
+</script>
+</body>
+</html>
